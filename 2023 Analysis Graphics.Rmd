@@ -1,0 +1,172 @@
+---
+title: "2023 Analysis Graphics"
+author: "Michelle Bang"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+asn <- read.table(file = "2023_analysis_sum.tsv",
+                              header = TRUE,
+                              sep = '\t')
+```
+
+```{r}
+ggplot(asn, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage, 
+                          col = expression_category)) + geom_point()
+```
+
+```{r}
+ggplot(asn, mapping = aes(x = allele, 
+                          y = adj_p_value, 
+                          col = expression_category)) + geom_point()
+```
+
+```{r}
+ggplot(asn, mapping = aes(x = expression_category, 
+                          y = estimated_transmission_percentage)) + geom_boxplot()
+```
+
+```{r}
+ggplot(asn, mapping = aes(x = expression_category, 
+                          y = raw_p_value)) + geom_boxplot()
+```
+\newpage
+
+#ADDITIONAL REQUESTS FROM JOHN (02/28)
+
+```{r}
+ordered_df <- asn %>%
+  arrange(desc(estimated_transmission_percentage))
+```
+
+```{r}
+write.table(ordered_df, file = "2023_analysis_sum_ordered.tsv", sep = "\t", row.names=FALSE) 
+```
+
+ignore this part... this is me looking into the graph...
+```{r}
+ordered_df %>%
+  filter(allele == "R06C04")
+```
+
+```{r}
+small_df <- ordered_df %>%
+  filter(estimated_transmission_percentage > .4940 & estimated_transmission_percentage < .4945)
+```
+
+```{r}
+sm_plot <- ggplot(small_df, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage,
+                          col = allele)) + geom_point() 
+sm_plot + scale_x_discrete(limits = ordered_df[["allele"]]) 
+```
+--ignore up to here---
+
+\newpage
+
+GRAPHS 
+
+```{r}
+ordered_plot <- ggplot(ordered_df, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage )) + geom_point() 
+
+ordered_plot + scale_x_discrete(limits = ordered_df[["allele"]])
+
+```
+
+```{r}
+with_log_df <- ordered_df %>%
+  mutate(log_adj_p = log(adj_p_value)) %>%
+  #only R187B08 had log(adj_p_value) of 0
+  mutate(log_adj_p = if_else(log_adj_p == 0, 1.0*10^(-15), log_adj_p))
+```
+
+```{r}
+ordered_log <- ggplot(with_log_df, mapping = aes(x = allele, 
+                          y = log_adj_p)) + geom_point()
+
+ordered_log + scale_x_discrete(limits = ordered_df[["allele"]])
+
+```
+
+
+```{r}
+ggplot(with_log_df, mapping = aes(x = allele, 
+                          y = log_adj_p, 
+                          col = estimated_transmission_percentage)) + geom_point()
+```
+
+```{r}
+ggplot(with_log_df, mapping = aes(x = estimated_transmission_percentage, 
+                          y = log(adj_p_value))) + geom_point()
+```
+
+```{r}
+ggplot(asn, mapping = aes(x = estimated_transmission_percentage, 
+                          y = adj_p_value)) + geom_point()
+```
+
+\newpage
+
+
+#NEW GRAPHICS...
+```{r}
+asn_new <- read.table(file = "2023_noEC_analysis_sum.tsv",
+                              header = TRUE,
+                              sep = '\t')
+```
+
+```{r}
+ordered_new <- asn_new %>%
+  arrange(desc(estimated_transmission_percentage))
+```
+
+```{r}
+ordered_plot_new <- ggplot(ordered_new, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage )) + geom_point() 
+
+ordered_plot_new + scale_x_discrete(limits = ordered_new[["allele"]]) + geom_hline(yintercept = .5, linetype = "dashed", color = "red")
+
+```
+
+```{r}
+with_log_df_new <- ordered_new %>%
+  mutate(log_adj_p = log(adj_p_value)) %>%
+  #only R187B08 had log(adj_p_value) of 0
+  mutate(log_adj_p = if_else(log_adj_p == 0, 1.0*10^(-15), log_adj_p))
+```
+
+```{r}
+ordered_log_new <- ggplot(with_log_df_new, mapping = aes(x = allele, 
+                          y = log_adj_p)) + geom_point()
+
+ordered_log_new + scale_x_discrete(limits = ordered_new[["allele"]]) + geom_hline(yintercept = log(.5), linetype = "dashed", color = "red")
+
+```
+
+
+```{r}
+ggplot(with_log_df_new, mapping = aes(x = allele, 
+                          y = log_adj_p, 
+                          col = estimated_transmission_percentage)) + geom_point()
+```
+
+```{r}
+logcolor <- ggplot(with_log_df_new, mapping = aes(x = allele, 
+                          y = log_adj_p, 
+                          col = estimated_transmission_percentage)) + geom_point()
+
+logcolor + scale_x_discrete(limits = ordered_new[["allele"]])
+```
+
+```{r}
+ggplot(ordered_new, mapping = aes(x = estimated_transmission_percentage, 
+                          y = adj_p_value)) + geom_point() + geom_hline(yintercept = 0.05, linetype = "dashed", color = "red")
+```

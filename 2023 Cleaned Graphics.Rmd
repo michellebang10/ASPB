@@ -1,0 +1,406 @@
+---
+title: "2023 Cleaned Graphics"
+author: "Michelle Bang"
+date: "`r Sys.Date()`"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(tidyverse)
+asn <- read.table(file = "2023_cleaned_analysis_sum.tsv",
+                              header = TRUE,
+                              sep = '\t')
+
+asn_pcr <- read.table(file = "2023_cleanPCR_analysis_sum.tsv",
+                              header = TRUE,
+                              sep = '\t')
+```
+
+```{r}
+ggplot(asn, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage)) + geom_point()
+```
+
+```{r}
+ggplot(asn, mapping = aes(x = allele, 
+                          y = adj_p_value)) + geom_point()
+```
+\newpage
+
+#ADDITIONAL REQUESTS FROM JOHN (02/28)
+
+```{r}
+ordered_df <- asn %>%
+  arrange(desc(estimated_transmission_percentage))
+```
+
+```{r}
+write.table(ordered_df, file = "2023_cleaned_analysis_ordered.tsv", sep = "\t", row.names=FALSE) 
+```
+
+\newpage
+
+GRAPHS 
+
+```{r}
+ordered_plot <- ggplot(ordered_df, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage )) + geom_point() 
+
+ordered_plot + scale_x_discrete(limits = ordered_df[["allele"]])
+
+```
+
+```{r}
+with_log_df <- ordered_df %>%
+  mutate(log_adj_p = log(adj_p_value)) %>%
+  #only R187B08 had log(adj_p_value) of 0
+  mutate(log_adj_p = if_else(log_adj_p == 0, 1.0*10^(-15), log_adj_p))
+```
+
+```{r}
+ordered_log <- ggplot(with_log_df, mapping = aes(x = allele, 
+                          y = log_adj_p)) + geom_point()
+
+ordered_log + scale_x_discrete(limits = ordered_df[["allele"]])
+
+```
+
+
+```{r}
+ggplot(with_log_df, mapping = aes(x = allele, 
+                          y = log_adj_p, 
+                          col = estimated_transmission_percentage)) + geom_point()
+```
+
+```{r}
+ggplot(with_log_df, mapping = aes(x = estimated_transmission_percentage, 
+                          y = log(adj_p_value))) + geom_point()
+```
+
+```{r}
+ggplot(asn, mapping = aes(x = estimated_transmission_percentage, 
+                          y = adj_p_value)) + geom_point()
+```
+
+\newpage
+
+
+#NEW GRAPHICS...
+
+```{r}
+ordered_new <- ordered_df %>%
+  arrange(desc(estimated_transmission_percentage))
+```
+
+```{r}
+ordered_plot_new <- ggplot(ordered_new, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage )) + geom_point() 
+
+ordered_plot_new + scale_x_discrete(limits = ordered_new[["allele"]]) + geom_hline(yintercept = .5, linetype = "dashed", color = "red")
+
+```
+
+```{r}
+with_log_df_new <- ordered_new %>%
+  mutate(log_adj_p = log(adj_p_value)) %>%
+  #only R187B08 had log(adj_p_value) of 0
+  mutate(log_adj_p = if_else(log_adj_p == 0, 1.0*10^(-15), log_adj_p))
+```
+
+```{r}
+ordered_log_new <- ggplot(with_log_df_new, mapping = aes(x = allele, 
+                          y = log_adj_p)) + geom_point()
+
+ordered_log_new + scale_x_discrete(limits = ordered_new[["allele"]]) + geom_hline(
+  yintercept = log(.05), 
+  linetype = "dashed", 
+  color = "red")
+
+```
+
+
+```{r}
+ggplot(with_log_df_new, mapping = aes(x = allele, 
+                          y = log_adj_p, 
+                          col = estimated_transmission_percentage)) + geom_point()
+```
+
+```{r}
+logcolor <- ggplot(with_log_df_new, mapping = aes(x = allele, 
+                          y = log_adj_p, 
+                          col = estimated_transmission_percentage)) + geom_point()
+
+logcolor + scale_x_discrete(limits = ordered_new[["allele"]])
+```
+
+```{r}
+ordered_new <- ordered_new %>%
+  mutate(perc = estimated_transmission_percentage*100)
+```
+
+```{r}
+ordered_new %>%
+  filter(adj_p_value < .05)
+```
+
+```{r}
+ggplot(ordered_new, mapping = aes(x = perc, 
+                          y = adj_p_value)) + geom_point() + geom_hline(yintercept = 0.05, linetype = "dashed", color = "red") + xlab("Estimated Transmission Percentage") + ylab("Adjusted P-value") + ggtitle("Adjusted P-value vs. Estimated Transmission Percentage") + theme(axis.title = element_text(size = 13))
+```
+
+\newpage
+
+#This is for the smaller dataset with PCR_valid
+```{r}
+ggplot(asn_pcr, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage, 
+                          col = expression_category)) + geom_point()
+```
+
+```{r}
+ggplot(asn_pcr, mapping = aes(x = allele, 
+                          y = adj_p_value, 
+                          col = expression_category)) + geom_point()
+```
+
+```{r}
+ggplot(asn_pcr, mapping = aes(x = expression_category, 
+                          y = estimated_transmission_percentage)) + geom_boxplot() + theme(axis.text.x = element_text(size = 8))
+```
+
+```{r}
+ggplot(asn_pcr, mapping = aes(x = expression_category, 
+                          y = raw_p_value)) + geom_boxplot() + theme(axis.text.x = element_text(size = 8))
+```
+\newpage
+
+#ADDITIONAL REQUESTS FROM JOHN (02/28)
+
+```{r}
+ordered_df <- asn_pcr %>%
+  arrange(desc(estimated_transmission_percentage))
+```
+
+```{r}
+write.table(ordered_df, file = "2023_cleanPCR_analysis_ordered.tsv", sep = "\t", row.names=FALSE) 
+```
+
+\newpage
+
+GRAPHS 
+
+```{r}
+ordered_plot <- ggplot(ordered_df, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage )) + geom_point() 
+
+ordered_plot + scale_x_discrete(limits = ordered_df[["allele"]])
+
+```
+
+```{r}
+with_log_df <- ordered_df %>%
+  mutate(log_adj_p = log(adj_p_value)) %>%
+  #only R187B08 had log(adj_p_value) of 0
+  mutate(log_adj_p = if_else(log_adj_p == 0, 1.0*10^(-15), log_adj_p))
+```
+
+```{r}
+ordered_log <- ggplot(with_log_df, mapping = aes(x = allele, 
+                          y = log_adj_p)) + geom_point()
+
+ordered_log + scale_x_discrete(limits = ordered_df[["allele"]])
+
+```
+
+
+```{r}
+ggplot(with_log_df, mapping = aes(x = allele, 
+                          y = log_adj_p, 
+                          col = estimated_transmission_percentage)) + geom_point()
+```
+
+```{r}
+ggplot(with_log_df, mapping = aes(x = estimated_transmission_percentage, 
+                          y = log(adj_p_value))) + geom_point()
+```
+
+```{r}
+ggplot(asn_pcr, mapping = aes(x = estimated_transmission_percentage, 
+                          y = adj_p_value)) + geom_point()
+```
+
+\newpage
+
+
+#NEW GRAPHICS...
+
+```{r}
+ordered_new <- ordered_df %>%
+  arrange(desc(estimated_transmission_percentage))
+```
+
+```{r}
+ordered_plot_new <- ggplot(ordered_new, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage )) + geom_point() 
+
+ordered_plot_new + scale_x_discrete(limits = ordered_new[["allele"]]) + geom_hline(yintercept = .5, linetype = "dashed", color = "red")
+
+```
+
+```{r}
+with_log_df_new <- ordered_new %>%
+  mutate(log_adj_p = log(adj_p_value)) %>%
+  #only R187B08 had log(adj_p_value) of 0
+  mutate(log_adj_p = if_else(log_adj_p == 0, 1.0*10^(-15), log_adj_p))
+```
+
+```{r}
+ordered_log_new <- ggplot(with_log_df_new, mapping = aes(x = allele, 
+                          y = log_adj_p)) + geom_point()
+
+ordered_log_new + scale_x_discrete(limits = ordered_new[["allele"]]) + geom_hline(
+  yintercept = log(.05), 
+  linetype = "dashed", 
+  color = "red")
+
+```
+
+
+```{r}
+ggplot(with_log_df_new, mapping = aes(x = allele, 
+                          y = log_adj_p, 
+                          col = estimated_transmission_percentage)) + geom_point()
+```
+
+```{r}
+logcolor <- ggplot(with_log_df_new, mapping = aes(x = allele, 
+                          y = log_adj_p, 
+                          col = estimated_transmission_percentage)) + geom_point()
+
+logcolor + scale_x_discrete(limits = ordered_new[["allele"]])
+```
+
+```{r}
+ggplot(ordered_new, mapping = aes(x = estimated_transmission_percentage, 
+                          y = adj_p_value)) + geom_point() + geom_hline(yintercept = 0.05, linetype = "dashed", color = "red")
+```
+
+\newpage
+#Additional Request from John 03/09
+```{r}
+ordered_new$expression_category <- factor(ordered_new$expression_category, levels = c("Seedling Only", "Low", "Sperm Cell", "Sperm Cell High", "Vegetative Cell", "Vegetative Cell High"))
+
+ordered_plot_new <- ggplot(ordered_new, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage, color = expression_category )) + geom_point() 
+
+ordered_plot_new + scale_x_discrete(limits = ordered_new[["allele"]]) + geom_hline(yintercept = .5, linetype = "dashed", color = "red")
+```
+```{r}
+grouped_new <- ordered_df %>%
+  arrange(expression_category)
+
+#below does not work...?
+#grouped_new <- ordered_df %>%
+  #arrange(factor(grouped_new$expression_category, levels = c("Seedling Only", "Low", "Sperm Cell", "Sperm Cell High", "Vegetative Cell", "Vegetative Cell High"))
+```
+
+```{r}
+grouped_new <- grouped_new %>%
+  mutate(perc = estimated_transmission_percentage*100)
+```
+
+```{r}
+#grouped_new$expression_category <- factor(grouped_new$expression_category, levels = c("Seedling Only", "Low", "Sperm Cell", "Sperm Cell High", "Vegetative Cell", "Vegetative Cell High"))
+
+grouped_plot_new <- ggplot(grouped_new, mapping = aes(x = allele, 
+                          y = perc, color = expression_category )) + geom_point() 
+
+#grouped_plot_new
+grouped_plot_new + scale_x_discrete(limits = grouped_new[["allele"]]) + geom_hline(yintercept = .5, linetype = "dashed", color = "red") + xlab("Allele") + ylab("Estimated Transmission Percentage") + labs(color = "Expression Category") + theme(axis.text.x = element_text(size = .5), axis.title = element_text(size = 13)) + ggtitle("Estimated Transmission Percentage vs. Allele")
+```
+
+
+```{r}
+seedling_df <- ordered_new %>%
+  filter(expression_category == "Seedling Only")
+
+seedling_plot <- ggplot(seedling_df, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage)) + geom_point() 
+
+seedling_plot + scale_x_discrete(limits = seedling_df[["allele"]]) + geom_hline(yintercept = .5, linetype = "dashed", color = "red") + theme(axis.text.x = element_text(size = 6)) + ggtitle("Seedling Only")
+```
+
+```{r}
+low_df <- ordered_new %>%
+  filter(expression_category == "Low")
+
+low_plot <- ggplot(low_df, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage)) + geom_point() 
+
+low_plot + scale_x_discrete(limits = low_df[["allele"]]) + geom_hline(yintercept = .5, linetype = "dashed", color = "red") + theme(axis.text.x = element_text(size = 4)) + ggtitle("Low")
+```
+
+```{r}
+sperm_df <- ordered_new %>%
+  filter(expression_category == "Sperm Cell")
+
+sperm_plot <- ggplot(sperm_df, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage)) + geom_point() 
+
+sperm_plot + scale_x_discrete(limits = sperm_df[["allele"]]) + geom_hline(yintercept = .5, linetype = "dashed", color = "red") + theme(axis.text.x = element_text(size = 10)) + ggtitle("Sperm Cell")
+```
+
+```{r}
+shigh_df <- ordered_new %>%
+  filter(expression_category == "Sperm Cell High")
+
+shigh_plot <- ggplot(shigh_df, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage)) + geom_point() 
+
+shigh_plot + scale_x_discrete(limits = shigh_df[["allele"]]) + geom_hline(yintercept = .5, linetype = "dashed", color = "red") + theme(axis.text.x = element_text(size = 4)) + ggtitle("Sperm Cell High")
+```
+
+```{r}
+veg_df <- ordered_new %>%
+  filter(expression_category == "Vegetative Cell")
+
+veg_plot <- ggplot(veg_df, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage)) + geom_point() 
+
+veg_plot + scale_x_discrete(limits = veg_df[["allele"]]) + geom_hline(yintercept = .5, linetype = "dashed", color = "red") + theme(axis.text.x = element_text(size = 6)) + ggtitle("Vegetative Cell")
+```
+
+```{r}
+vhigh_df <- ordered_new %>%
+  filter(expression_category == "Vegetative Cell High")
+
+vhigh_plot <- ggplot(vhigh_df, mapping = aes(x = allele, 
+                          y = estimated_transmission_percentage)) + geom_point() 
+
+vhigh_plot + scale_x_discrete(limits = vhigh_df[["allele"]]) + geom_hline(yintercept = .5, linetype = "dashed", color = "red") + theme(axis.text.x = element_text(size = 2)) + ggtitle("Vegetative Cell High")
+```
+
+```{r}
+ordered_new %>% 
+  group_by(expression_category) %>%
+  summarize(count = n())
+```
+```{r}
+count_df <- ordered_df %>%
+  mutate(expression_category = if_else(expression_category == "Seedling Only", "Seedling Only (17)", expression_category)) %>%
+  mutate(expression_category = if_else(expression_category == "Low", "Low (22)", expression_category)) %>%
+  mutate(expression_category = if_else(expression_category == "Sperm Cell", "Sperm Cell (7)", expression_category)) %>%
+  mutate(expression_category = if_else(expression_category == "Sperm Cell High", "Sperm Cell High (23)", expression_category)) %>%
+  mutate(expression_category = if_else(expression_category == "Vegetative Cell", "Vegetative Cell (17)", expression_category)) %>%
+  mutate(expression_category = if_else(expression_category == "Vegetative Cell High", "Vegetative Cell High (40)", expression_category))
+```
+
+
+```{r}
+ggplot(count_df, mapping = aes(x = expression_category, 
+                          y = estimated_transmission_percentage)) + geom_boxplot() + theme(axis.text.x = element_text(size = 6)) 
+```
